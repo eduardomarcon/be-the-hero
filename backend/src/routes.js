@@ -4,57 +4,27 @@ const sessionController = require('./controllers/SessionController')
 const ongController = require('./controllers/OngController')
 const incidentController = require('./controllers/IncidentController')
 const profileController = require('./controllers/ProfileController')
-const { celebrate, Joi, Segments } = require('celebrate')
+const { globalValidator, ongValidator } = require('./validators')
 
 routes.post('/sessions', sessionController.create)
 
 routes.get('/ongs', ongController.index)
-routes.post(
-  '/ongs',
-  celebrate({
-    [Segments.BODY]: Joi.object().keys({
-      name: Joi.string().required(),
-      email: Joi.string()
-        .required()
-        .email(),
-      whatsapp: Joi.string()
-        .required()
-        .min(10)
-        .max(11),
-      city: Joi.string().required(),
-      uf: Joi.string()
-        .required()
-        .length(2)
-    })
-  }),
-  ongController.create
-)
+routes.post('/ongs', ongValidator.ongValid(), ongController.create)
 
 routes.get(
   '/incidents',
-  celebrate({
-    [Segments.QUERY]: Joi.object().keys({ page: Joi.number() })
-  }),
+  globalValidator.pageQueryParamNumeric(),
   incidentController.index
 )
 routes.post('/incidents', incidentController.create)
 routes.delete(
   '/incidents/:id',
-  celebrate({
-    [Segments.PARAMS]: Joi.object().keys({
-      id: Joi.number().required()
-    })
-  }),
+  globalValidator.idReqParamNumeric(),
   incidentController.delete
 )
-
 routes.get(
   '/profile',
-  celebrate({
-    [Segments.HEADERS]: Joi.object({
-      authorization: Joi.string().required()
-    }).unknown()
-  }),
+  globalValidator.authorizationRequired(),
   profileController.index
 )
 
